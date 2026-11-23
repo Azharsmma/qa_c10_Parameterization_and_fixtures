@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import pytest
 import requests
@@ -8,20 +9,21 @@ load_dotenv()
 
 BASE_URL = os.getenv("BASE_URL")
 
+ERROR_MESSAGES = {
+    400: "Недостаточно данных для входа",
+    404: "Учетная запись не найдена",
+}
+
 
 class TestCourierLogin:
 
     @pytest.mark.parametrize(
         "login_type, password_type, expected_status",
         [
-            # TODO: добавьте минимум 3 набора данных.
-            # Должны быть позитивные и негативные сценарии.
-            #
-            # Например:
-            # ("valid", "valid", 200),
-            # ("missing", "valid", 400),
-            # ("valid", "missing", 400),
-            # ("invalid", "valid", 404),
+            ("valid", "valid", 200),
+            ("missing", "valid", 400),
+            ("valid", "missing", 400),
+            ("invalid", "invalid", 404),
         ],
     )
     def test_courier_login(
@@ -31,24 +33,33 @@ class TestCourierLogin:
         password_type,
         expected_status,
     ):
-        # TODO: подготовьте login и password для каждого сценария.
-        #
-        # Для позитивного сценария используйте данные
-        # созданного фикстурой курьера.
-        #
-        # Для негативных сценариев сформируйте необходимые
-        # некорректные или отсутствующие данные.
+        logins = {
+            "valid": courier["login"],
+            "missing": "",
+            "invalid": f"no_user_{uuid.uuid4().hex[:8]}",
+        }
+        passwords = {
+            "valid": courier["password"],
+            "missing": "",
+            "invalid": "wrong_password",
+        }
 
-        login = None
-        password = None
+        login = logins[login_type]
+        password = passwords[password_type]
 
         payload = {
             "login": login,
             "password": password,
         }
 
-        # TODO: отправьте POST /api/v1/courier/login.
-        response = None
+        response = requests.post(
+            f"{BASE_URL}/api/v1/courier/login",
+            json=payload,
+        )
 
-        # TODO: проверьте ожидаемый статус ответа.
         assert response.status_code == expected_status
+
+        if expected_status == 200:
+            assert "id" in response.json()
+        else:
+            assert response.json()["message"] == ERROR_MESSAGES[expected_status]
