@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_URL = os.getenv("BASE_URL")
+BASE_URL = os.getenv("BASE_URL", "https://qa-scooter.praktikum-services.ru")
 
 ERROR_MESSAGES = {
     400: "Недостаточно данных для входа",
