@@ -35,22 +35,23 @@ class TestCourierLogin:
     ):
         logins = {
             "valid": courier["login"],
-            "missing": "",
+            "missing": None,
             "invalid": f"no_user_{uuid.uuid4().hex[:8]}",
         }
         passwords = {
             "valid": courier["password"],
-            "missing": "",
+            "missing": None,
             "invalid": "wrong_password",
         }
 
         login = logins[login_type]
         password = passwords[password_type]
 
-        payload = {
-            "login": login,
-            "password": password,
-        }
+        payload = {}
+        if login is not None:
+            payload["login"] = login
+        if password is not None:
+            payload["password"] = password
 
         response = requests.post(
             f"{BASE_URL}/api/v1/courier/login",
